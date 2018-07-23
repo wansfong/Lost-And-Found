@@ -15,6 +15,11 @@ export default new Router({
       component: GMap
     },
     {
+      path: '/:id',
+      props: true,
+      component: GMap
+    },
+    {
       path: '/database',
       name: 'Database',
       component: Database

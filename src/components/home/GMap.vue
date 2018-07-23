@@ -220,6 +220,7 @@ export default {
     ])
   },
   created () {
+    console.log(this.$route.params.id)
     EventBus.$on('toggleSubmission', function (submission) {
       this.submissionDialog = false
       this.lat = null
