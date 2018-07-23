@@ -1,19 +1,24 @@
-import Vue from 'Vue'
+import Vue from 'vue'
+// import Index from '@/components/home/SubmissionForm/Index'
 import GMap from '@/components/home/GMap'
 
 describe('GMap.vue', () => {
-  it('prevents markers being added outside of UCSC boundaries', () => {
+  it('cheks that the submission form starts closed', () => {
+    // const IndexConstructor = Vue.extend(Index)
+    const Constructor = Vue.extend(GMap)
+    // const IndexComponent = new IndexConstructor().$mount()
+    const GMapComponent = new Constructor().$mount()
+    // console.log('**********')
+    // console.log(GMapComponent)
+    // console.log(IndexComponent.submissionDialog)
+    expect(GMapComponent.submissionDialog).to.equal(false)
+  })
+
+  it('prevents markers being created outside the boundaries of UCSC', () => {
     const Constructor = Vue.extend(GMap)
     const GMapComponent = new Constructor().$mount()
-    /* const vm = new Vue({
-      el: document.createElement('div'),
-      render: (h) => h(GMap)
-    }).$mount() */
-
-    // const gMap = vm.$el.querySelector('GmapMap')
-
-    // const button = ListComponent.$el.querySelector('button');
     console.log('**********')
-    console.log('What is this? ', GMapComponent.$el)
+    // console.log(GMapComponent)
+    console.log(GMapComponent.$parent.getMap)
   })
 })

@@ -44,14 +44,13 @@
                     </v-flex>
                     <date-picker></date-picker>
                     <time-picker></time-picker>
-                    <v-flex xs12 mt-4>
+                    <v-flex xs12>
                         <v-tabs
                           centered
                           v-model="active"
                           color="cyan"
                           dark
-                          fixed
-                          height="30"
+                          icons-and-text
                         >
                           <v-tabs-slider color="yellow"></v-tabs-slider>
                           <v-tab href="#tab-1">
@@ -67,18 +66,7 @@
                           <v-tab-item id="tab-1">
                             <v-card flat>
                               <v-card-text>
-                                <image-uploader
-                                  ref="fileUpload"
-                                  :debug="1"
-                                  :maxWidth="400"
-                                  :maxHeight="400"
-                                  :quality="0.9"
-                                  :autoRotate=true
-                                  outputFormat="string"
-                                  :preview=true
-                                  @input="updateImageFile"
-                                  @onUpload="checkFileType"
-                                ></image-uploader>
+                                <input type="file" accept=".jpg, .png, .gif" @change="getPicInfo">
                               </v-card-text>
                             </v-card>
                           </v-tab-item>
@@ -100,8 +88,6 @@
         <v-card-actions>
             <v-spacer></v-spacer>
             <v-btn
-              color="cyan"
-              dark
               @click="uploadImageAndDoc"
               :disabled="!valid"
             >Submit</v-btn>
@@ -121,7 +107,6 @@ import TimePicker from './TimePicker'
 
 // import event bus for child to parent communication
 import { EventBus } from '../../../main'
-import { ImageUploader } from 'vue-image-upload-resize'
 
 // import to use vuelidate
 import { email, required } from 'vuelidate/lib/validators'
@@ -130,8 +115,7 @@ import formMixin from '../../../mixins/form'
 export default {
   components: {
     'date-picker': DatePicker,
-    'time-picker': TimePicker,
-    'image-uploader': ImageUploader
+    'time-picker': TimePicker
   },
   mixins: [formMixin],
   // vuelidate package allows us to include validations to enforce correct input format
@@ -193,21 +177,21 @@ export default {
       imageFile: null,
       imageURL: null,
       active: null,
-      valid: true
+      valid: false
     }
   },
   methods: {
     uploadImageAndDoc () {
       this.$v.$touch()
-      if (!this.valid) {
+      if (this.$v.$invalid) {
         console.log('test')
         console.log('this.valid :', this.valid)
+        return
       }
       this.imageFile && this.active === 'tab-1' ? this.uploadPic(this.collectionName) : this.addDoc(this.collectionName)
       this.toggleSubmission()
     },
     addDoc (collectionName) {
-      console.log('addDoc is running')
       if (this.type) {
         this.feedback = null
         this.db.collection(collectionName).add({
@@ -229,35 +213,15 @@ export default {
             console.log(error)
           })
       } else {
-        // this.alert = 'true'
-        // this.feedback = 'You must enter an item type'
+        this.feedback = 'You must enter an item type'
       }
     },
-    /*
-      Checks the type of file being uploaded, and displays error message for user if not an image type
-    */
-    checkFileType () {
-      var uploadedFile = this.$refs.fileUpload.$el.children[1].files[0]
-      if (uploadedFile.type.includes('image')) {
-        console.log('File is an image type')
-      } else {
-        console.log('Error: File is not an image')
-        // !!!! NEED TO DISPLAY USER ERROR MESSAGE !!!
-      }
+    /* updates the picture info in data */
+    getPicInfo (e) {
+      this.imageFile = e.target.files[0]
     },
-    /*
-      Updates the picture file stored in data after being resized
-      NOTE: will not be called if uploaded file was not an image type
-      Parameters: file -- a data_url string, 64-base
-    */
-    updateImageFile: function (file) {
-      this.imageFile = file
-    },
-    /*
-      Uploads the picture to Storage and saves the url to data.imageURL
-      NOTE: must be called before addDoc() if user is including a picture
-      Parameters: collectionName -- the name of the item collection in the db; should be either 'lost-items' or 'found-items'
-    */
+    /* upload picture to Storage and save the url to data.imageURL */
+    /* NOTE!!! must be called before addDoc() if user is including a picture */
     uploadPic (collectionName) {
       var name = this.user.uid + '-' + (+new Date()) + '-' + this.type // give picture unique name based on userID, timestamp, and item type
       console.log('uploadPic is running')
@@ -283,17 +247,21 @@ export default {
     // close form
     toggleSubmission () {
       this.$v.$reset()
+      this.clearForm()
       EventBus.$emit('toggleSubmission')
-    }
-  },
-  watch: {
-    // reset every input if toggle between lost form and found form
-    activeParent () {
+    },
+    clearForm () {
       this.type = null
       this.description = null
       this.contactEmail = this.user.email
       this.imageFile = null
       this.imageURL = null
+    }
+  },
+  watch: {
+    // reset every input if toggle between lost form and found form
+    activeParent () {
+      this.clearForm()
     }
   },
   created () {

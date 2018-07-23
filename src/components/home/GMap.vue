@@ -3,7 +3,7 @@
     <v-alert icon="new_releases" style="margin=0 0 0 0;" v-model="alert" dismissible type="error" transition="slide-y-transition">
       You must log in to pin!
     </v-alert>
-    <v-btn @click="findMarker('KCNg3uuaNXOGkAoLfG8B')">Hi</v-btn>
+    <v-btn @click="findMarker('SA9diJQJeMmRJbQkzAMZ')">Hi</v-btn>
     <GmapMap :center="center" :zoom="16" :options="mapOptions" style="width: 100%; height: 100%" ref="mapRef" @dragend="checkBoundary" @click="addLocation">
       <submission-form :lat="lat" :lng="lng" :submissionDialog="submissionDialog" :user="user"></submission-form>
       <gmap-info-window
@@ -27,26 +27,8 @@
           <v-btn v-if="isUserLoggedIn && user.uid == infoWindow.userID" @click="deleteMarker" color="error">Resolve</v-btn>
         </div>
       </gmap-info-window>
-      <GmapMarker
-        v-if="all_lost_items"
-        :animation="2"
-        v-for="(lost_item, index) in all_lost_items"
-        :key="`lost-${index}-${lost_item.location._lat},${lost_item.location._long}`"
-        :position="{lat: lost_item.location._lat, lng: lost_item.location._long}"
-        :title="lost_item.type"
-        :clickable="true"
-        icon="../../../static/icons/lost_icon.png"
-        @click="getMarkerDetails(lost_item, index, 'Lost: ', 'lost-items')" />
-      <GmapMarker
-        v-if="all_found_items"
-        :animation="2"
-        v-for="(found_item, index) in all_found_items"
-        :key="`found-${index}-${found_item.location._lat},${found_item.location._long}`"
-        :position="{lat: found_item.location._lat, lng: found_item.location._long}"
-        :title="found_item.type"
-        :clickable="true"
-        icon="../../../static/icons/found_icon.png"
-        @click="getMarkerDetails(found_item, index, 'Found: ', 'found-items')" />
+      <GmapMarker v-if="all_lost_items" :animation="2" v-for="(lost_item, index) in all_lost_items" :key="`lost-${index}-${lost_item.location._lat},${lost_item.location._long}`" :position="{lat: lost_item.location._lat, lng: lost_item.location._long}" :title="lost_item.type" :clickable="true" icon="../../../static/icons/lost_icon.png" @click="getMarkerDetails(lost_item, index, 'Lost: ', 'lost-items')" />
+      <GmapMarker v-if="all_found_items" :animation="2" v-for="(found_item, index) in all_found_items" :key="`found-${index}-${found_item.location._lat},${found_item.location._long}`" :position="{lat: found_item.location._lat, lng: found_item.location._long}" :title="found_item.type" :clickable="true" icon="../../../static/icons/found_icon.png" @click="getMarkerDetails(found_item, index, 'Found: ', 'found-items')" />
 
       <GmapMarker
         v-if="lat && lng"
@@ -63,19 +45,15 @@ import { gmapApi } from 'vue2-google-maps'
 import SubmissionForm from './SubmissionForm/Index'
 import { EventBus } from '../../main'
 import { mapState } from 'vuex'
-import firebase from 'firebase'
-
 // these coordinates define the boundaries of the map/UCSC
 const MIN_LAT = 36.987615
 const MAX_LAT = 37.001976
 const MIN_LNG = -122.068846
 const MAX_LNG = -122.04808
-
 export default {
   components: {
     'submission-form': SubmissionForm
   },
-  name: 'gmap',
   data () {
     return {
       // lat and lng are used for location
@@ -116,9 +94,6 @@ export default {
     }
   },
   methods: {
-    /*
-
-    */
     checkBoundary () {
       var strictBounds = new this.google.maps.LatLngBounds(
         new this.google.maps.LatLng(MIN_LAT, MIN_LNG),
@@ -126,22 +101,18 @@ export default {
       )
       this.$refs.mapRef.$mapPromise.then(map => {
         if (strictBounds.contains(map.getCenter())) return
-
         // We're out of bounds - Move the map back within the bounds
         let c = map.getCenter()
         let x = c.lng()
         let y = c.lat()
-
         let maxX = strictBounds.getNorthEast().lng()
         let maxY = strictBounds.getNorthEast().lat()
         let minX = strictBounds.getSouthWest().lng()
         let minY = strictBounds.getSouthWest().lat()
-
         if (x < minX) x = minX
         if (x > maxX) x = maxX
         if (y < minY) y = minY
         if (y > maxY) y = maxY
-
         map.setCenter(new this.google.maps.LatLng(y, x))
       })
     },
@@ -164,7 +135,6 @@ export default {
           this.infoWindow.collectionName = collectionName
           this.infoWindow.id = marker.id
           console.log('Info Window ID: ' + this.infoWindow.id)
-
           // check if its the same marker that was selected if yes toggle
           if (this.currentMidx === idx) {
             this.infoWinOpen = !this.infoWinOpen
@@ -172,8 +142,6 @@ export default {
             this.infoWinOpen = true
             this.currentMidx = idx
           }
-          console.log(this.infoWinOpen)
-          console.log(this.currentMidx)
         }, 400)
       }
     },
@@ -210,13 +178,10 @@ export default {
       // open the submission form
       this.submissionDialog = true
     },
-    /*
-      Deletes the marker's associated entry in the db, and deletes the picture from Storage if applicable
-    */
     deleteMarker () {
       // deletes associated picture if item has one, and it's stored in Storage
       if (this.infoWindow.pictures && this.infoWindow.pictures.includes(this.infoWindow.userID)) {
-        var picRef = firebase.storage().refFromURL(this.infoWindow.pictures)
+        var picRef = this.firebase.storage().refFromURL(this.infoWindow.pictures)
         picRef.delete().then(function () {
           console.log('Image successfully deleted from Storage')
         // eslint-disable-next-line
@@ -224,7 +189,6 @@ export default {
           console.log('Error in deleting image from Storage')
         })
       }
-
       // deletes the entry from the db and then updates the local copies
       this.db.collection(this.infoWindow.collectionName).doc(this.infoWindow.id).delete().then(() => {
         this.$store.dispatch('updateUserCollection', this.infoWindow.collectionName)
@@ -235,9 +199,6 @@ export default {
         console.error('Error removing document: ', error)
       })
     },
-    /*
-
-    */
     closeInfoWindow () {
       this.infoWinOpen = false
       this.infoWindow.type = null
@@ -253,14 +214,11 @@ export default {
     findMarker (itemID) {
       console.log('findMarker is running, looking for: ' + itemID)
       if (this.all_lost_items) {
-        console.log('all_lost_items not null')
         for (var i = 0; i < this.all_lost_items.length; i++) {
-          console.log(this.all_lost_items[i].id)
           if (this.all_lost_items[i].id === itemID) {
             console.log('it\'s a match')
             console.log(this.all_lost_items[i].id)
-            console.log(i)
-            this.getMarkerDetails(this.all_lost_items[i], i, 'Lost: ', 'lost-items').then(this.infoWinOpen = true)
+            this.getMarkerDetails(this.all_lost_items[i], i, 'Lost: ', 'lost-items')
             i = this.all_lost_items.length
           }
         }
@@ -280,18 +238,18 @@ export default {
     ])
   },
   created () {
+    console.log(this.$route.params.id)
     EventBus.$on('toggleSubmission', function (submission) {
       this.submissionDialog = false
       // this.lat = null
       // this.lng = null
       this.geolocation()
     }.bind(this))
-
-    /* EventBus.$on('locateItem', function (itemID) {
-      this.findMarker(itemID)
-    }.bind(this)) */
   },
   mounted () {
+    EventBus.$on('locateItem', function (itemID) {
+      this.findMarker(itemID)
+    }.bind(this))
   },
   filters: {
     // Define truncate filter to replace long words with ...
