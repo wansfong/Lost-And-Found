@@ -52,7 +52,6 @@
 <script>
 import firebase from 'firebase'
 import db from '@/firebase/init'
-// import { EventBus } from '../../main'
 
 var storage = firebase.storage()
 
@@ -65,8 +64,7 @@ export default {
     }
   },
   methods: {
-    /*
-    */
+    /** *  ***/
     displayCollection (collectionName, collectionArr) {
       // fetch data from firestore
       db
@@ -85,9 +83,8 @@ export default {
           })
         })
     },
-    /*
-      fetches the picture from Storage, url given by urlPic, and replaces the associated img tag src with the url
-    */
+    /** * fetches the picture from Storage, url given by urlPic,
+     *   and replaces the associated img tag src with the url ***/
     getPicture (urlPic, elemID) {
       storage.refFromURL(urlPic).getDownloadURL().then(function (url) {
         let img = document.getElementById(elemID)
