@@ -37,7 +37,7 @@ Vue.use(Vuetify, {
 Vue.use(VueGoogleMaps, {
   load: {
     key: 'AIzaSyB-FXJVrNHMXVkgxiGkZylm8kcABXb06cA',
-    libraries: 'geolocation' // This is required if you use the Autocomplete plugin
+    libraries: 'places' // This is required if you use the Autocomplete plugin
     // OR: libraries: 'places,drawing,visualization'
     // (as you require)
   },
