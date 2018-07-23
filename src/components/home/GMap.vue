@@ -177,6 +177,21 @@ export default {
         }, 400)
       }
     },
+
+    // Wan edit: made geolocation function
+    geolocation () {
+      navigator.geolocation.getCurrentPosition((position) => {
+        this.center = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude
+        }
+        this.addLocation({
+          lat: this.center.lat,
+          lng: this.center.lng
+        })
+      })
+    },
+
     /*
       Updates the location for a new potential marker, and opens the submission form
       Parameters: e -- event object from clicking the map
@@ -269,6 +284,7 @@ export default {
       this.submissionDialog = false
       // this.lat = null
       // this.lng = null
+      this.geolocation()
     }.bind(this))
 
     /* EventBus.$on('locateItem', function (itemID) {
