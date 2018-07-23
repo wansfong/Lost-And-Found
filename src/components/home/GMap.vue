@@ -3,33 +3,32 @@
     <v-alert icon="new_releases" style="margin=0 0 0 0;" v-model="alert" dismissible type="error" transition="slide-y-transition">
       You must log in to pin!
     </v-alert>
-    <v-btn @click="findMarker('KCNg3uuaNXOGkAoLfG8B')">Hi</v-btn>
+    <v-btn @click="findMarker('SA9diJQJeMmRJbQkzAMZ')">Hi</v-btn>
     <GmapMap :center="center" :zoom="16" :options="mapOptions" style="width: 100%; height: 100%" ref="mapRef" @dragend="checkBoundary" @click="addLocation">
       <submission-form :lat="lat" :lng="lng" :submissionDialog="submissionDialog" :user="user"></submission-form>
-      <gmap-info-window v-cloak :options="infoOptions" :position="infoWindow.location" :opened="infoWinOpen" @closeclick="closeInfoWindow">
+      <gmap-info-window
+        v-cloak :options="infoOptions" :position="infoWindow.location" :opened="infoWinOpen" @closeclick="closeInfoWindow">
         <v-layout>
           <v-flex class="text-xs-center">
-            <h1 style="text-align: center;">{{infoWindow.type}}</h1>
-            <progressive-img v-if="infoWindow.pictures" :src="infoWindow.pictures" alt="" />
+            <transition name="fade">
+              <h1 style="text-align: center;">{{infoWindow.type}}</h1>
+            </transition>
+            <progressive-img v-if="infoWindow.pictures" :src="infoWindow.pictures" alt=""/>
           </v-flex>
         </v-layout>
         <v-layout>
           <v-flex v-if="infoWinOpen" transition="fade">
-            <h2>{{infoWindow.description}}</h2>
-            <h2>{{infoWindow.timestamp}}</h2>
-            <h2>{{infoWindow.contactEmail | truncate}}</h2>
+              <h2>{{infoWindow.description}}</h2>
+              <h2>{{infoWindow.timestamp}}</h2>
+              <h2>{{infoWindow.contactEmail | truncate}}</h2>
           </v-flex>
         </v-layout>
-        <v-layout>
-          <v-flex>
-            <div class="text-xs-center">
-              <v-btn v-if="isUserLoggedIn && user.uid == infoWindow.userID" @click="deleteMarker" color="error">Resolve</v-btn>
-            </div>
-          </v-flex>
-        </v-layout>
+        <div class="text-xs-center">
+          <v-btn v-if="isUserLoggedIn && user.uid == infoWindow.userID" @click="deleteMarker" color="error">Resolve</v-btn>
+        </div>
       </gmap-info-window>
       <GmapMarker
-        v-if="lostToggle"
+        v-if="all_lost_items"
         :animation="2"
         v-for="(lost_item, index) in all_lost_items"
         :key="`lost-${index}-${lost_item.location._lat},${lost_item.location._long}`"
@@ -39,7 +38,7 @@
         icon="../../../static/icons/lost_icon.png"
         @click="getMarkerDetails(lost_item, index, 'Lost: ', 'lost-items')" />
       <GmapMarker
-        v-if="foundToggle"
+        v-if="all_found_items"
         :animation="2"
         v-for="(found_item, index) in all_found_items"
         :key="`found-${index}-${found_item.location._lat},${found_item.location._long}`"
@@ -49,7 +48,12 @@
         icon="../../../static/icons/found_icon.png"
         @click="getMarkerDetails(found_item, index, 'Found: ', 'found-items')" />
 
-      <GmapMarker v-if="lat && lng" :animation="2" :position="{lat, lng}" icon="http://s3.amazonaws.com/besport.com_images/status-pin.png" />
+      <GmapMarker
+        v-if="lat && lng"
+        :animation="2"
+        :position="{lat, lng}"
+        icon="http://s3.amazonaws.com/besport.com_images/status-pin.png"
+        />
     </GmapMap>
   </div>
 </template>
@@ -60,13 +64,11 @@ import SubmissionForm from './SubmissionForm/Index'
 import { EventBus } from '../../main'
 import { mapState } from 'vuex'
 import firebase from 'firebase'
-
 // these coordinates define the boundaries of the map/UCSC
 const MIN_LAT = 36.987615
 const MAX_LAT = 37.001976
 const MIN_LNG = -122.068846
 const MAX_LNG = -122.04808
-
 export default {
   components: {
     'submission-form': SubmissionForm
@@ -88,12 +90,7 @@ export default {
         timestamp: null,
         userID: null,
         id: null,
-        collectionName: null,
-        edit: {
-          typeEdit: false,
-          descEdit: false,
-          emailEdit: false
-        }
+        collectionName: null
       },
       infoWinOpen: false,
       currentMidx: null,
@@ -118,7 +115,6 @@ export default {
   },
   methods: {
     /*
-
     */
     checkBoundary () {
       var strictBounds = new this.google.maps.LatLngBounds(
@@ -127,46 +123,21 @@ export default {
       )
       this.$refs.mapRef.$mapPromise.then(map => {
         if (strictBounds.contains(map.getCenter())) return
-
         // We're out of bounds - Move the map back within the bounds
         let c = map.getCenter()
         let x = c.lng()
         let y = c.lat()
-
         let maxX = strictBounds.getNorthEast().lng()
         let maxY = strictBounds.getNorthEast().lat()
         let minX = strictBounds.getSouthWest().lng()
         let minY = strictBounds.getSouthWest().lat()
-
         if (x < minX) x = minX
         if (x > maxX) x = maxX
         if (y < minY) y = minY
         if (y > maxY) y = maxY
-
         map.setCenter(new this.google.maps.LatLng(y, x))
       })
     },
-    // toggleEdit (attribute) {
-    //   if (this.infoWindow.userID !== this.user.uid) {
-    //     return
-    //   }
-    //   switch (attribute) {
-    //     case 'type':
-    //       this.infoWindow.edit.type = !this.infoWindow.edit.type
-    //   }
-    // },
-    // saveEdit (attribute) {
-    //   this.db.collection(this.infoWindow.collectionName).doc(this.infoWindow.id).update({
-    //     [attribute]: this.infoWindow[attribute]
-    //   })
-    //     .then(() => {
-    //       this.toggleEdit()
-    //     })
-    //     .catch((err) => {
-    //       console.log('Error :', err)
-    //     })
-    // },
-    // Assigns values from selected marker for info window to project
     /*
       Closes the currently open info window, assigns values from selected marker to info window, opens the info window
       Parameters: ???
@@ -186,7 +157,6 @@ export default {
           this.infoWindow.collectionName = collectionName
           this.infoWindow.id = marker.id
           console.log('Info Window ID: ' + this.infoWindow.id)
-
           // check if its the same marker that was selected if yes toggle
           if (this.currentMidx === idx) {
             this.infoWinOpen = !this.infoWinOpen
@@ -231,7 +201,6 @@ export default {
           console.log('Error in deleting image from Storage')
         })
       }
-
       // deletes the entry from the db and then updates the local copies
       this.db.collection(this.infoWindow.collectionName).doc(this.infoWindow.id).delete().then(() => {
         this.$store.dispatch('updateUserCollection', this.infoWindow.collectionName)
@@ -243,7 +212,6 @@ export default {
       })
     },
     /*
-
     */
     closeInfoWindow () {
       this.infoWinOpen = false
@@ -260,14 +228,11 @@ export default {
     findMarker (itemID) {
       console.log('findMarker is running, looking for: ' + itemID)
       if (this.all_lost_items) {
-        console.log('all_lost_items not null')
         for (var i = 0; i < this.all_lost_items.length; i++) {
-          console.log(this.all_lost_items[i].id)
           if (this.all_lost_items[i].id === itemID) {
             console.log('it\'s a match')
             console.log(this.all_lost_items[i].id)
-            console.log(i)
-            this.getMarkerDetails(this.all_lost_items[i], i, 'Lost: ', 'lost-items').then(this.infoWinOpen = true)
+            this.getMarkerDetails(this.all_lost_items[i], i, 'Lost: ', 'lost-items')
             i = this.all_lost_items.length
           }
         }
@@ -283,9 +248,7 @@ export default {
       'db',
       'firebase',
       'all_lost_items',
-      'all_found_items',
-      'lostToggle',
-      'foundToggle'
+      'all_found_items'
     ])
   },
   created () {
@@ -294,12 +257,11 @@ export default {
       // this.lat = null
       // this.lng = null
     }.bind(this))
-
-    /* EventBus.$on('locateItem', function (itemID) {
-      this.findMarker(itemID)
-    }.bind(this)) */
   },
   mounted () {
+    EventBus.$on('locateItem', function (itemID) {
+      this.findMarker(itemID)
+    }.bind(this))
   },
   filters: {
     // Define truncate filter to replace long words with ...
