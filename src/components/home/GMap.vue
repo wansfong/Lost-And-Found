@@ -3,7 +3,10 @@
     <v-alert icon="new_releases" style="margin=0 0 0 0;" v-model="alert" dismissible type="error" transition="slide-y-transition">
       You must log in to pin!
     </v-alert>
+<<<<<<< HEAD
     <v-btn @click="findMarker('SA9diJQJeMmRJbQkzAMZ')">Hi</v-btn>
+=======
+>>>>>>> parent of ec9d9ee... merged with my current progress on edit
     <GmapMap :center="center" :zoom="16" :options="mapOptions" style="width: 100%; height: 100%" ref="mapRef" @dragend="checkBoundary" @click="addLocation">
       <submission-form :lat="lat" :lng="lng" :submissionDialog="submissionDialog" :user="user"></submission-form>
       <gmap-info-window
@@ -27,6 +30,7 @@
           <v-btn v-if="isUserLoggedIn && user.uid == infoWindow.userID" @click="deleteMarker" color="error">Resolve</v-btn>
         </div>
       </gmap-info-window>
+<<<<<<< HEAD
       <GmapMarker
         v-if="all_lost_items"
         :animation="2"
@@ -47,6 +51,10 @@
         :clickable="true"
         icon="../../../static/icons/found_icon.png"
         @click="getMarkerDetails(found_item, index, 'Found: ', 'found-items')" />
+=======
+      <GmapMarker v-if="all_lost_items" :animation="2" v-for="(lost_item, index) in all_lost_items" :key="`lost-${index}-${lost_item.location._lat},${lost_item.location._long}`" :position="{lat: lost_item.location._lat, lng: lost_item.location._long}" :title="lost_item.type" :clickable="true" icon="../../../static/icons/lost_icon.png" @click="getMarkerDetails(lost_item, index, 'Lost: ', 'lost-items')" />
+      <GmapMarker v-if="all_found_items" :animation="2" v-for="(found_item, index) in all_found_items" :key="`found-${index}-${found_item.location._lat},${found_item.location._long}`" :position="{lat: found_item.location._lat, lng: found_item.location._long}" :title="found_item.type" :clickable="true" icon="../../../static/icons/found_icon.png" @click="getMarkerDetails(found_item, index, 'Found: ', 'found-items')" />
+>>>>>>> parent of ec9d9ee... merged with my current progress on edit
 
       <GmapMarker
         v-if="lat && lng"
@@ -63,7 +71,11 @@ import { gmapApi } from 'vue2-google-maps'
 import SubmissionForm from './SubmissionForm/Index'
 import { EventBus } from '../../main'
 import { mapState } from 'vuex'
+<<<<<<< HEAD
 import firebase from 'firebase'
+=======
+
+>>>>>>> parent of ec9d9ee... merged with my current progress on edit
 // these coordinates define the boundaries of the map/UCSC
 const MIN_LAT = 36.987615
 const MAX_LAT = 37.001976
@@ -73,7 +85,6 @@ export default {
   components: {
     'submission-form': SubmissionForm
   },
-  name: 'gmap',
   data () {
     return {
       // lat and lng are used for location
@@ -114,8 +125,11 @@ export default {
     }
   },
   methods: {
+<<<<<<< HEAD
     /*
     */
+=======
+>>>>>>> parent of ec9d9ee... merged with my current progress on edit
     checkBoundary () {
       var strictBounds = new this.google.maps.LatLngBounds(
         new this.google.maps.LatLng(MIN_LAT, MIN_LNG),
@@ -138,10 +152,34 @@ export default {
         map.setCenter(new this.google.maps.LatLng(y, x))
       })
     },
+<<<<<<< HEAD
     /*
       Closes the currently open info window, assigns values from selected marker to info window, opens the info window
       Parameters: ???
     */
+=======
+    // toggleEdit (attribute) {
+    //   if (this.infoWindow.userID !== this.user.uid) {
+    //     return
+    //   }
+    //   switch (attribute) {
+    //     case 'type':
+    //       this.infoWindow.edit.type = !this.infoWindow.edit.type
+    //   }
+    // },
+    // saveEdit (attribute) {
+    //   this.db.collection(this.infoWindow.collectionName).doc(this.infoWindow.id).update({
+    //     [attribute]: this.infoWindow[attribute]
+    //   })
+    //     .then(() => {
+    //       this.toggleEdit()
+    //     })
+    //     .catch((err) => {
+    //       console.log('Error :', err)
+    //     })
+    // },
+    // Assigns values from selected marker for info window to project
+>>>>>>> parent of ec9d9ee... merged with my current progress on edit
     getMarkerDetails (marker, idx, collectionTitle, collectionName) {
       this.closeInfoWindow()
       if (marker.location) {
@@ -156,7 +194,11 @@ export default {
           this.infoWindow.userID = marker.userID
           this.infoWindow.collectionName = collectionName
           this.infoWindow.id = marker.id
+<<<<<<< HEAD
           console.log('Info Window ID: ' + this.infoWindow.id)
+=======
+
+>>>>>>> parent of ec9d9ee... merged with my current progress on edit
           // check if its the same marker that was selected if yes toggle
           if (this.currentMidx === idx) {
             this.infoWinOpen = !this.infoWinOpen
@@ -164,15 +206,10 @@ export default {
             this.infoWinOpen = true
             this.currentMidx = idx
           }
-          console.log(this.infoWinOpen)
-          console.log(this.currentMidx)
         }, 400)
       }
     },
-    /*
-      Updates the location for a new potential marker, and opens the submission form
-      Parameters: e -- event object from clicking the map
-    */
+    // update new location for potential marker
     addLocation (e) {
       if (this.infoWinOpen) {
         this.infoWinOpen = false
@@ -187,10 +224,8 @@ export default {
       // open the submission form
       this.submissionDialog = true
     },
-    /*
-      Deletes the marker's associated entry in the db, and deletes the picture from Storage if applicable
-    */
     deleteMarker () {
+<<<<<<< HEAD
       // deletes associated picture if item has one, and it's stored in Storage
       if (this.infoWindow.pictures && this.infoWindow.pictures.includes(this.infoWindow.userID)) {
         var picRef = firebase.storage().refFromURL(this.infoWindow.pictures)
@@ -202,6 +237,8 @@ export default {
         })
       }
       // deletes the entry from the db and then updates the local copies
+=======
+>>>>>>> parent of ec9d9ee... merged with my current progress on edit
       this.db.collection(this.infoWindow.collectionName).doc(this.infoWindow.id).delete().then(() => {
         this.$store.dispatch('updateUserCollection', this.infoWindow.collectionName)
         this.$store.dispatch('updateCollection', this.infoWindow.collectionName)
@@ -211,8 +248,11 @@ export default {
         console.error('Error removing document: ', error)
       })
     },
+<<<<<<< HEAD
     /*
     */
+=======
+>>>>>>> parent of ec9d9ee... merged with my current progress on edit
     closeInfoWindow () {
       this.infoWinOpen = false
       this.infoWindow.type = null
@@ -224,6 +264,7 @@ export default {
       this.infoWindow.userID = null
       this.infoWindow.id = null
       this.infoWindow.collectionName = null
+<<<<<<< HEAD
     },
     findMarker (itemID) {
       console.log('findMarker is running, looking for: ' + itemID)
@@ -237,6 +278,8 @@ export default {
           }
         }
       }
+=======
+>>>>>>> parent of ec9d9ee... merged with my current progress on edit
     }
   },
   computed: {
@@ -254,14 +297,17 @@ export default {
   created () {
     EventBus.$on('toggleSubmission', function (submission) {
       this.submissionDialog = false
-      // this.lat = null
-      // this.lng = null
+      this.lat = null
+      this.lng = null
     }.bind(this))
+<<<<<<< HEAD
   },
   mounted () {
     EventBus.$on('locateItem', function (itemID) {
       this.findMarker(itemID)
     }.bind(this))
+=======
+>>>>>>> parent of ec9d9ee... merged with my current progress on edit
   },
   filters: {
     // Define truncate filter to replace long words with ...
